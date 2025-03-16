@@ -1,7 +1,7 @@
 import express, { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 const app = express();
-app.use(express.json())
+app.use(express.json());
 import { Middleware } from "./middleware";
 import { JWT_SECRET } from "@repo/backend-common/config";
 import { UserSchema, SigninSchema, CreateRoomSchema } from "@repo/common/types";
@@ -37,7 +37,7 @@ app.post("/signup", async (req: Request, res: Response) => {
       data: {
         email: parsedData.data?.username,
         password: parsedData.data?.password,
-        name:parsedData.data?.name
+        name: parsedData.data?.name,
       },
     });
     if (!user) {
@@ -48,7 +48,7 @@ app.post("/signup", async (req: Request, res: Response) => {
     }
     res.status(200).json({
       message: "User created successfully ",
-      userId:user.id
+      userId: user.id,
     });
   } catch (error) {
     console.error(error);
@@ -60,7 +60,7 @@ app.post("/signup", async (req: Request, res: Response) => {
 
 app.post("/signin", async (req: Request, res: Response) => {
   const body = req.body;
-  const parsedData = SigninSchema.safeParse(req.body.username);
+  const parsedData = SigninSchema.safeParse(req.body);
   if (!parsedData.success) {
     res.json({
       message: "Incorrect input",
@@ -68,31 +68,55 @@ app.post("/signin", async (req: Request, res: Response) => {
     return;
   }
 
-  const username = body.username;
-  const userExist = await prismaClient.user.findFirst({
+  const user = await prismaClient.user.findFirst({
     where: {
-      email:parsedData.data.username,
-      password:parsedData.data.password
+      email: parsedData.data.username,
+      password: parsedData.data.password,
     },
   });
-  if (!userExist) {
-    res.status(404).json({  
-      message: "User not found ",
+  if (!user) {
+    res.status(404).json({
+      message: "Not authorized",
     });
     return;
   }
-  const token = jwt.sign({ userExist:userExist.id }, JWT_SECRET);
+  const token = jwt.sign({ userId: user?.id }, JWT_SECRET);
   res.json({
     token: token,
   });
 });
 
-app.post("/room", Middleware, (req: Request, res: Response) => {
-
+app.post("/room", Middleware, async (req: Request, res: Response) => {
+  const parsedData = CreateRoomSchema.safeParse(req.body);
+  if (!parsedData.success) {
+    res.status(403).json({
+      message: "Incorrect message",
+    });
+    return;
+  }
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      res.json({
+        message: "userId not found ",
+      });
+      return;
+    }
+    const createRoom = await prismaClient.room.create({
+      data: {
+        slug: parsedData.data.name,
+        adminId: userId,
+      },
+    });
+    res.status(200).json({
+      message: "Room created successfully",
+      roomId: createRoom.id,
+    });
+  } catch (error) {
+    res.json({
+      message: "Unable to create room",
+    });
+  }
 });
 
 app.listen(3002);
-
-
-
-// 
