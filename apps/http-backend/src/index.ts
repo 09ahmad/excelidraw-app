@@ -141,4 +141,27 @@ app.get("/chats/:roomId", async (req: Request, res: Response) => {
   }
 });
 
+
+
+app.get("/room/:slug", async (req: Request, res: Response) => {
+  const slug = req.params.slug;
+  try {
+    const room= await prismaClient.room.findFirst({
+      where: {
+        slug
+      }
+    });
+
+    res.json({
+      room,
+    });
+    
+  } catch (error) {
+    res.status(403).json({
+      message: "unable to get the data",
+    });
+  }
+});
+
+
 app.listen(3002);
