@@ -119,4 +119,26 @@ app.post("/room", Middleware, async (req: Request, res: Response) => {
   }
 });
 
+app.get("/chats/:roomId", async (req: Request, res: Response) => {
+  const roomId = Number(req.params.roomId);
+  try {
+    const messages = await prismaClient.chat.findMany({
+      where: {
+        roomId: roomId,
+      },
+      orderBy: {
+        id: "desc",
+      },
+      take: 50,
+    });
+    res.json({
+      messages,
+    });
+  } catch (error) {
+    res.status(403).json({
+      message: "unable to get the data",
+    });
+  }
+});
+
 app.listen(3002);
