@@ -1,7 +1,9 @@
 import express, { NextFunction, Request, Response } from "express";
+import cors from "cors"
 import jwt from "jsonwebtoken";
 const app = express();
 app.use(express.json());
+app.use(cors())
 import { Middleware } from "./middleware";
 import { JWT_SECRET } from "@repo/backend-common/config";
 import { UserSchema, SigninSchema, CreateRoomSchema } from "@repo/common/types";
@@ -118,6 +120,7 @@ app.post("/room", Middleware, async (req: Request, res: Response) => {
     });
   }
 });
+
 
 app.get("/chats/:roomId", async (req: Request, res: Response) => {
   const roomId = Number(req.params.roomId);
