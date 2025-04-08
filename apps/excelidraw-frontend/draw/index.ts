@@ -103,7 +103,7 @@ export async function initDraw(
         const centerX=startX+radius;
         const centerY=startY+radius;
         ctx.beginPath();
-        ctx.arc(centerX,centerY,radius , 0 , Math.PI * 2)
+        ctx.arc(centerX,centerY,Math.abs(radius),0,Math.PI * 2)
         ctx.stroke();
         ctx.closePath();
       }
